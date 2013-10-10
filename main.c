@@ -12,6 +12,9 @@
 #include "filesystem.h"
 #include "fio.h"
 
+/* Shell */
+#include "shell/shell.h"
+
 extern const char _sromfs;
 
 static void setup_hardware();
@@ -95,9 +98,14 @@ int main()
 	vSemaphoreCreateBinary(serial_tx_wait_sem);
 
 	/* Create a task to output text read from romfs. */
+#if 0	
 	xTaskCreate(read_romfs_task,
 	            (signed portCHAR *) "Read romfs",
 	            512 /* stack size */, NULL, tskIDLE_PRIORITY + 2, NULL);
+#endif
+	xTaskCreate(shell,(signed portCHAR *) "Shell",
+				512 /* stack size */,NULL,tskIDLE_PRIORITY + 1,NULL);
+	
 
 	/* Start running the tasks. */
 	vTaskStartScheduler();
@@ -108,3 +116,4 @@ int main()
 void vApplicationTickHook()
 {
 }
+

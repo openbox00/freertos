@@ -52,6 +52,7 @@ main.bin: test-romfs.o main.c
 		\
 		osdebug.c \
 		string-util.c \
+		shell/shell.c \
 		\
 		main.c
 	$(CROSS_COMPILE)ld -Tmain.ld -nostartfiles -o main.elf \
@@ -72,6 +73,7 @@ main.bin: test-romfs.o main.c
 		romfs.o hash-djb2.o filesystem.o fio.o \
 		\
 		osdebug.o \
+		shell.o \
 		string-util.o \
 		\
 		main.o
