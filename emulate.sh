@@ -17,7 +17,7 @@ stm32_qemu () {
 	emulate $1
 
 	echo "Modeling STM32 in QEMU..."
-	(sleep $2; kill $pid; sleep 1; kill -KILL $pid)& timer=$!
+#	(sleep $2; kill $pid; sleep 1; kill -KILL $pid)& timer=$!
 	if ! wait $pid; then
 		kill $timer 2>/dev/null
 		echo
