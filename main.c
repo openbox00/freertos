@@ -13,8 +13,6 @@
 #include "filesystem.h"
 #include "fio.h"
 
-/* char & str struct def */
-#include "systemdef.h"
 
 /* Shell */
 #include "shell/shell.h"
@@ -23,7 +21,12 @@ extern const char _sromfs;
 
 static void setup_hardware();
 
-//volatile xQueueHandle serial_str_queue = NULL;
+
+/* Queue structure used for passing characters. */
+typedef struct {
+	char ch;
+} serial_ch_msg;
+
 volatile xSemaphoreHandle serial_tx_wait_sem = NULL;
 volatile xQueueHandle serial_rx_queue = NULL;
 
@@ -79,6 +82,7 @@ void send_byte(char ch)
 	/* Send the byte and enable the transmit interrupt (it is disabled by
 	 * the interrupt).
 	 */
+	
 	USART_SendData(USART2, ch);
 	USART_ITConfig(USART2, USART_IT_TXE, ENABLE);
 }
