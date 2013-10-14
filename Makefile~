@@ -57,6 +57,10 @@ main.bin: test-romfs.o main.c shell.c
 		main.c \
 		shell.c
 	$(CROSS_COMPILE)ld -Tmain.ld -nostartfiles -o main.elf \
+		-I. -I$(FREERTOS_INC) -I$(FREERTOS_PORT_INC) \
+		-I$(CODEBASE)/libraries/CMSIS/CM3/CoreSupport \
+		-I$(CODEBASE)/libraries/CMSIS/CM3/DeviceSupport/ST/STM32F10x \
+		-I$(CODEBASE)/libraries/STM32F10x_StdPeriph_Driver/inc \
 		shell.o	\
 		core_cm3.o \
 		system_stm32f10x.o \
