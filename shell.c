@@ -1,28 +1,16 @@
-/**/
-#include <stddef.h>
-#include "systemdef.h"
-#include <ctype.h> 
-
-/* Filesystem includes */
-#include "filesystem.h"
-#include "fio.h"
-
 /* Scheduler includes. */
 #include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
 #include "semphr.h"
 
-#define MAX_ARGC 19
+#define MAX_ARGC 9
 #define MAX_CMDNAME 19
 #define MAX_CMDHELP 100
 #define HISTORY_COUNT 10
-#define CMDBUF_SIZE 100
+#define CMDBUF_SIZE 50
 #define MAX_ENVVALUE 127
 #define MAX_ENVNAME 15
-
-
-#define BACKSPACE 127
 
 int strcmp(const char *a, const char *b) __attribute__ ((naked));
 int strcmp(const char *a, const char *b)
@@ -42,7 +30,7 @@ int strcmp(const char *a, const char *b)
 }
 
 char next_line[3] = {'\n','\r','\0'};
-char cmd[CMDBUF_SIZE];
+char cmd[HISTORY_COUNT][CMDBUF_SIZE];
 int cur_his=0;
 
 /* Command handlers. */
@@ -66,8 +54,7 @@ const hcmd_entry cmd_data[CMD_COUNT] = {
 
 void send_str(char *str)
 {
-	int curr_char;
-	curr_char = 0;
+	int curr_char = 0;
 	while (str[curr_char] != '\0') {
 		send_byte(str[curr_char]);
 		curr_char++;
@@ -97,35 +84,43 @@ int cmdtok(char *argv[], char *cmd)
 	int j = 0;
 	
 	while (*cmd != '\0'){
-		if(*cmd == ' ')
-			*cmd++;
-		else
-			while(*cmd != '\'' || *cmd != '\"'){
-			tmp[i] = *cmd;
-			*cmd++;
-			i++;
+		if(*cmd == ' '){
+			cmd++;
+		}else{
+			while (1) {
+				if ((*cmd != ' ') && (*cmd != '\0')){
+					tmp[i++] = *cmd;
+					cmd++;
+				}
+				else {
+				tmp[i] = '\0';
+				break;
+				}		
 			}
-			tmp[i] = '\0';
-			argv[j] = *tmp;
-			j++;
+			strcpy(argv[j++],tmp);
+		}
 	}
-	return j;
-	
-}
 
+	return j;	
+}
 
 void check_keyword()
 {
-	char *argv[MAX_ARGC + 1] = {NULL};
+	char tok[MAX_ARGC + 1][100];
+	char *argv[MAX_ARGC + 1];
+	int k = 0;
+	
+	for (k;k<MAX_ARGC + 1;k++){
+	argv[k] = &tok[k][0];
+	}
 	int i;
 	int argc;
-	char *p;
-	p = cmd[cur_his];
 	
 	char cmdstr[CMDBUF_SIZE];
-	strcpy(cmdstr, p);
+	strcpy(cmdstr, &cmd[cur_his][0]);
 	
 	argc = cmdtok(argv,cmdstr);
+	
 
 	for (i = 0; i < CMD_COUNT; i++) {
 		if (!strcmp(cmd_data[i].cmd, argv[0])) {
@@ -148,7 +143,8 @@ void shell(void *pvParameters)
 	char *str ="\rShell:~$";	
 
 	for (;; cur_his = (cur_his + 1) % HISTORY_COUNT) {
-		p = cmd[cur_his];
+		/* need use & that p can work correct, idk why p = cmd[cur_his] can't work */
+		p = &cmd[cur_his][0];
 
 		send_str(str);
 
@@ -160,24 +156,20 @@ void shell(void *pvParameters)
 				send_str(next_line);
 				break;
 			}
-			else if (put_ch== BACKSPACE || put_ch == '\b') {
-				if (p > cmd[cur_his]) {
+			else if (put_ch== 127 || put_ch == '\b') {
+				if (p > &cmd[cur_his][0]) {
 					p--;
-					send_str(BACKSPACE);
+					send_str("\b \b");
 				}
 			}
-			else if (p - cmd[cur_his] < CMDBUF_SIZE - 1) {
-				*p++ = put_ch;
+			else if (p - &cmd[cur_his][0] < CMDBUF_SIZE - 1) {
+				*(p++) = put_ch;				
 				send_byte(put_ch);
-			}
-	
+			}	
 		}
 		check_keyword();		
 	}
 }
-
-
-
 
 
 
