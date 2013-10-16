@@ -4,6 +4,9 @@
 #include "queue.h"
 #include "semphr.h"
 
+/* print */
+#include "print.h"
+
 #define MAX_ARGC 9
 #define MAX_CMDNAME 19
 #define MAX_CMDHELP 100
@@ -52,14 +55,7 @@ const hcmd_entry cmd_data[CMD_COUNT] = {
 	[CMD_HELP] = {.cmd = "help", .func = show_cmd_info, .description = "List all commands you can use."}
 };
 
-void send_str(char *str)
-{
-	int curr_char = 0;
-	while (str[curr_char] != '\0') {
-		send_byte(str[curr_char]);
-		curr_char++;
-	}
-}
+
 
 //help
 void show_cmd_info(int argc, char* argv[])
@@ -67,12 +63,12 @@ void show_cmd_info(int argc, char* argv[])
 	char *help_desp = "This system has commands as follow\n\r\0";
 	int i;
 
-	send_str(help_desp);
+	print("%s",help_desp);
 	for (i = 0; i < CMD_COUNT; i++) {
-		send_str(cmd_data[i].cmd);
-		send_str("\t: ");
-		send_str(cmd_data[i].description);
-		send_str(next_line);
+		print("%s",cmd_data[i].cmd);
+		print("\t: ");
+		print("%s",cmd_data[i].description);
+		print("%s",next_line);
 	}
 }
 
@@ -130,9 +126,9 @@ void check_keyword()
 	}
 
 	if (i == CMD_COUNT) {
-		send_str(argv[0]);
-		send_str(": command not found");
-		send_str(next_line);
+		print("%s",argv[0]);
+		print(": command not found");
+		print("%s",next_line);
 	}
 }
 
@@ -146,25 +142,25 @@ void shell(void *pvParameters)
 		/* need use & that p can work correct, idk why p = cmd[cur_his] can't work */
 		p = &cmd[cur_his][0];
 
-		send_str(str);
+		print("%s",str);
 
 		while (1) {
 			put_ch = receive_byte();			
 
 			if (put_ch == '\r' || put_ch == '\n') {
 				*p = '\0';
-				send_str(next_line);
+				print("%s",next_line);
 				break;
 			}
 			else if (put_ch== 127 || put_ch == '\b') {
 				if (p > &cmd[cur_his][0]) {
 					p--;
-					send_str("\b \b");
+					print("\b \b");
 				}
 			}
 			else if (p - &cmd[cur_his][0] < CMDBUF_SIZE - 1) {
-				*(p++) = put_ch;				
-				send_byte(put_ch);
+				*(p++) = put_ch;
+				print("%c",put_ch);
 			}	
 		}
 		check_keyword();		
