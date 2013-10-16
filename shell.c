@@ -37,28 +37,58 @@ char cmd[HISTORY_COUNT][CMDBUF_SIZE];
 int cur_his=0;
 
 /* Command handlers. */
-void show_cmd_info(int argc, char *argv[]);
+void show_cmd_info(int argc, char *argv[], int *num);
+void show_echo(int argc, char* argv[], int *num);
+void show_history(int argc, char *argv[], int *num);
 
 /* Enumeration for command types. */
 enum {
 	CMD_HELP = 0,
+	CMD_HISTORY,
+	CMD_ECHO,
 	CMD_COUNT
 } CMD_TYPE;
 
 /* Structure for command handler. */
 typedef struct {
 	char cmd[MAX_CMDNAME + 1];
-	void (*func)(int, char**);
+	void (*func)(int, char**, int**);
 	char description[MAX_CMDHELP + 1];
 } hcmd_entry;
+
 const hcmd_entry cmd_data[CMD_COUNT] = {
-	[CMD_HELP] = {.cmd = "help", .func = show_cmd_info, .description = "List all commands you can use."}
+	[CMD_HELP] = {.cmd = "help", .func = show_cmd_info, .description = "List all commands you can use."},	
+	[CMD_HISTORY] = {.cmd = "history", .func = show_history, .description = "Show latest commands entered."}, 
+	[CMD_ECHO] = {.cmd = "echo", .func = show_echo, .description = "Show words you input."}
 };
 
+//echo
+void show_echo(int argc, char* argv[], int *num)
+{
+	int i = 1;
+	int j = 0;
+	for(;i<argc;i++){
+		print("%s",argv[i]);
+		for(j;j<num[i];j++){
+			print(" ");
+		}		
+	}
+	print("\n");
+}
 
+void show_history(int argc, char *argv[], int *num)
+{
+	int i;
+	for (i = cur_his + 1; i <= cur_his + HISTORY_COUNT; i++) {
+		if (cmd[i % HISTORY_COUNT][0]) {
+			print("%s", cmd[i % HISTORY_COUNT]);
+			print("%s",next_line);
+		}
+	}
+}
 
 //help
-void show_cmd_info(int argc, char* argv[])
+void show_cmd_info(int argc, char* argv[], int *num)
 {
 	char *help_desp = "This system has commands as follow\n\r\0";
 	int i;
@@ -73,32 +103,42 @@ void show_cmd_info(int argc, char* argv[])
 }
 
 /* ref tim37021 */
-int cmdtok(char *argv[], char *cmd)
+int cmdtok(char *argv[], char *cmd, int *num)
 {
 	char tmp[CMDBUF_SIZE];
 	int i = 0;
 	int j = 0;
+	int flag;
+
+	int x = -1;
 	
 	while (*cmd != '\0'){
 		if(*cmd == ' '){
+			if (flag){
+				num[x]++;
+			}
 			cmd++;
 		}else{
+			flag = 1;
 			while (1) {
 				if ((*cmd != ' ') && (*cmd != '\0')){
 					tmp[i++] = *cmd;
 					cmd++;
 				}
-				else {
+				else { 
 				tmp[i] = '\0';
+				i = 0;
 				break;
 				}		
 			}
 			strcpy(argv[j++],tmp);
+			x++;
 		}
 	}
 
 	return j;	
 }
+
 
 void check_keyword()
 {
@@ -115,12 +155,16 @@ void check_keyword()
 	char cmdstr[CMDBUF_SIZE];
 	strcpy(cmdstr, &cmd[cur_his][0]);
 	
-	argc = cmdtok(argv,cmdstr);
+	/* for echo used*/
+	int num[10] = {NULL};
 	
+	argc = cmdtok(argv, cmdstr, num);
+
+
 
 	for (i = 0; i < CMD_COUNT; i++) {
 		if (!strcmp(cmd_data[i].cmd, argv[0])) {
-			cmd_data[i].func(argc, argv);
+			cmd_data[i].func(argc, argv, num);
 			break;
 		}
 	}

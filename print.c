@@ -67,7 +67,7 @@ void print(const char *format, ...)
 					send_str(out_ch); 
 				}else if(format[curr_ch + 1] == '%'){
 					send_str(percentage); 
-				}
+				} 				
 			curr_ch++;
             }
 			else{
