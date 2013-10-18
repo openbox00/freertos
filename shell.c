@@ -10,7 +10,7 @@
 #define MAX_ARGC 9
 #define MAX_CMDNAME 19
 #define MAX_CMDHELP 100
-#define HISTORY_COUNT 10
+#define HISTORY_COUNT 5
 #define CMDBUF_SIZE 50
 #define MAX_ENVVALUE 127
 #define MAX_ENVNAME 15
@@ -40,12 +40,14 @@ int cur_his=0;
 void show_cmd_info(int argc, char *argv[], int *num);
 void show_echo(int argc, char* argv[], int *num);
 void show_history(int argc, char *argv[], int *num);
+void show_task_info(int argc, char* argv[], int *num);
 
 /* Enumeration for command types. */
 enum {
 	CMD_HELP = 0,
 	CMD_HISTORY,
 	CMD_ECHO,
+	CMD_PS,
 	CMD_COUNT
 } CMD_TYPE;
 
@@ -59,10 +61,20 @@ typedef struct {
 const hcmd_entry cmd_data[CMD_COUNT] = {
 	[CMD_HELP] = {.cmd = "help", .func = show_cmd_info, .description = "List all commands you can use."},	
 	[CMD_HISTORY] = {.cmd = "history", .func = show_history, .description = "Show latest commands entered."}, 
-	[CMD_ECHO] = {.cmd = "echo", .func = show_echo, .description = "Show words you input."}
+	[CMD_ECHO] = {.cmd = "echo", .func = show_echo, .description = "Show words you input."},
+	[CMD_PS] = {.cmd = "ps", .func = show_task_info, .description = "List all the processes."}
+	
 };
 
-//echo
+void show_task_info(int argc, char* argv[], int *num)
+{
+	portCHAR buf[100];
+	vTaskList(buf);
+	print("Name\t\tState  Priority Stack  Num");
+    print("%s", buf); 
+}
+
+//echo but can't solve '' "" situation 
 void show_echo(int argc, char* argv[], int *num)
 {
 	int i = 1;
@@ -79,7 +91,7 @@ void show_echo(int argc, char* argv[], int *num)
 void show_history(int argc, char *argv[], int *num)
 {
 	int i;
-	for (i = cur_his + 1; i <= cur_his + HISTORY_COUNT; i++) {
+	for (i = cur_his+1; i <= cur_his + HISTORY_COUNT; i++) {
 		if (cmd[i % HISTORY_COUNT][0]) {
 			print("%s", cmd[i % HISTORY_COUNT]);
 			print("%s",next_line);
@@ -210,6 +222,7 @@ void shell(void *pvParameters)
 		check_keyword();		
 	}
 }
+
 
 
 
