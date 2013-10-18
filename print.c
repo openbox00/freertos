@@ -36,7 +36,7 @@ void xtoa(int n, char *buffer)
 		i++;
 	}
 	for(j=0;j<(8-i);j++){
-	*buffer = ' ';
+	*buffer = '0';
 	buffer++;
 	}	
 
@@ -46,7 +46,6 @@ void xtoa(int n, char *buffer)
 	s++;		
 	}
 	*buffer = '\0';
-
 }
 
 void itoa(int n, char *buffer)
