@@ -16,6 +16,39 @@ void send_str(char *str)
 	}
 }
 
+void xtoa(int n, char *buffer)
+{
+	char print_buf[9];
+	char *s;
+	int t;
+	int i = 0;
+	int j = 0;
+
+	s = print_buf + 9;
+	*s = '\0';	
+	
+	while (n) {
+		t = n % 16;
+		if( t >= 10 )
+			t += 'A' - '0' - 10;
+		*--s = t + '0';
+		n /= 16;
+		i++;
+	}
+	for(j=0;j<(8-i);j++){
+	*buffer = ' ';
+	buffer++;
+	}	
+
+	while(*s!='\0'){
+	*buffer = *s;
+	buffer++;
+	s++;		
+	}
+	*buffer = '\0';
+
+}
+
 void itoa(int n, char *buffer)
 {
 	if (n == 0)
@@ -49,7 +82,7 @@ void print(const char *format, ...)
         char out_ch[2] = {'\0', '\0'};
         char percentage[] = "%";
         char *str;
-        char str_num[10];
+        char str_num[12];
         int out_int;
 
         while( format[curr_ch] != '\0' ){
@@ -60,6 +93,9 @@ void print(const char *format, ...)
 					//parameter(...,The address of a pointer that point to the string which been put in queue,...)
 				}else if(format[curr_ch + 1] == 'd'){
                     itoa(va_arg(ap, int), str_num);
+					send_str(str_num);
+				}else if(format[curr_ch + 1] == 'x'){
+                    xtoa(va_arg(ap, int), str_num);
 					send_str(str_num);
 				}else if(format[curr_ch + 1] == 'c'){
 					/* char are converted to int then pushed on the stack */
