@@ -35,6 +35,8 @@ void xtoa(int n, char *buffer)
 		n /= 16;
 		i++;
 	}
+
+	/* 32 bit to hex need 8 digits, so no digits bit should fill 0 */
 	for(j=0;j<(8-i);j++){
 	*buffer = '0';
 	buffer++;
