@@ -37,16 +37,18 @@ char cmd[HISTORY_COUNT][CMDBUF_SIZE];
 int cur_his=0;
 
 /* Command handlers. */
-void show_cmd_info(int argc, char *argv[], int *num);
-void show_echo(int argc, char* argv[], int *num);
-void show_history(int argc, char *argv[], int *num);
-void show_task_info(int argc, char* argv[], int *num);
+void show_cmd_info(int argc, char *argv[]);
+void show_echo(int argc, char* argv[]);
+void show_history(int argc, char *argv[]);
+void show_task_info(int argc, char* argv[]);
+void show_mmtest_info(int argc, char* argv[]);
 
 /* Enumeration for command types. */
 enum {
 	CMD_HELP = 0,
 	CMD_HISTORY,
 	CMD_ECHO,
+	CMD_MMTEST,
 	CMD_PS,
 	CMD_COUNT
 } CMD_TYPE;
@@ -54,7 +56,7 @@ enum {
 /* Structure for command handler. */
 typedef struct {
 	char cmd[MAX_CMDNAME + 1];
-	void (*func)(int, char**, int**);
+	void (*func)(int, char**);
 	char description[MAX_CMDHELP + 1];
 } hcmd_entry;
 
@@ -62,11 +64,26 @@ const hcmd_entry cmd_data[CMD_COUNT] = {
 	[CMD_HELP] = {.cmd = "help", .func = show_cmd_info, .description = "List all commands you can use."},	
 	[CMD_HISTORY] = {.cmd = "history", .func = show_history, .description = "Show latest commands entered."}, 
 	[CMD_ECHO] = {.cmd = "echo", .func = show_echo, .description = "Show words you input."},
+	[CMD_MMTEST] = {.cmd = "mmtest", .func = show_mmtest_info, .description = "test memory allocate and free."},
 	[CMD_PS] = {.cmd = "ps", .func = show_task_info, .description = "List all the processes."}
 	
 };
 
-void show_task_info(int argc, char* argv[], int *num)
+/* mmtest */
+void show_mmtest_info(int argc, char* argv[])
+{
+    int i;
+    char *p;
+
+    print("try to allocate %d bytes\n\r", argv[1]);
+//    p = (char *) pvPortMalloc(argv[1]);
+//    print("malloc returned %p\n\r", p);
+
+}
+/* mmtest */
+
+/*ref ref zzz0072, PJayChen*/
+void show_task_info(int argc, char* argv[])
 {
 	portCHAR buf[100];
 	vTaskList(buf);
@@ -75,20 +92,18 @@ void show_task_info(int argc, char* argv[], int *num)
 }
 
 //echo but can't solve '' "" situation 
-void show_echo(int argc, char* argv[], int *num)
+void show_echo(int argc, char* argv[])
 {
 	int i = 1;
 	int j = 0;
 	for(;i<argc;i++){
-		print("%s",argv[i]);
-		for(j;j<num[i];j++){
-			print(" ");
-		}		
+		print("%s ",argv[i]);	
 	}
 	print("\n");
 }
 
-void show_history(int argc, char *argv[], int *num)
+//history
+void show_history(int argc, char *argv[])
 {
 	int i;
 	for (i = cur_his+1; i <= cur_his + HISTORY_COUNT; i++) {
@@ -100,7 +115,7 @@ void show_history(int argc, char *argv[], int *num)
 }
 
 //help
-void show_cmd_info(int argc, char* argv[], int *num)
+void show_cmd_info(int argc, char* argv[])
 {
 	char *help_desp = "This system has commands as follow\n\r\0";
 	int i;
@@ -115,7 +130,7 @@ void show_cmd_info(int argc, char* argv[], int *num)
 }
 
 /* ref tim37021 */
-int cmdtok(char *argv[], char *cmd, int *num)
+int cmdtok(char *argv[], char *cmd)
 {
 	char tmp[CMDBUF_SIZE];
 	int i = 0;
@@ -126,14 +141,15 @@ int cmdtok(char *argv[], char *cmd, int *num)
 	
 	while (*cmd != '\0'){
 		if(*cmd == ' '){
-			if (flag){
-				num[x]++;
-			}
 			cmd++;
-		}else{
-			flag = 1;
+		}
+		else {
 			while (1) {
-				if ((*cmd != ' ') && (*cmd != '\0')){
+				/* solve "" & '' in echo command*/
+				if ((*cmd == '\'') || (*cmd == '\"')){
+					cmd++;
+				}
+				else if ((*cmd != ' ') && (*cmd != '\0')){
 					tmp[i++] = *cmd;
 					cmd++;
 				}
@@ -144,7 +160,6 @@ int cmdtok(char *argv[], char *cmd, int *num)
 				}		
 			}
 			strcpy(argv[j++],tmp);
-			x++;
 		}
 	}
 
@@ -167,16 +182,11 @@ void check_keyword()
 	char cmdstr[CMDBUF_SIZE];
 	strcpy(cmdstr, &cmd[cur_his][0]);
 	
-	/* for echo used*/
-	int num[10] = {NULL};
-	
-	argc = cmdtok(argv, cmdstr, num);
-
-
+	argc = cmdtok(argv, cmdstr);
 
 	for (i = 0; i < CMD_COUNT; i++) {
 		if (!strcmp(cmd_data[i].cmd, argv[0])) {
-			cmd_data[i].func(argc, argv, num);
+			cmd_data[i].func(argc, argv);
 			break;
 		}
 	}
@@ -199,7 +209,7 @@ void shell(void *pvParameters)
 		p = &cmd[cur_his][0];
 
 		print("%s",str);
-
+		
 		while (1) {
 			put_ch = receive_byte();			
 
@@ -222,7 +232,6 @@ void shell(void *pvParameters)
 		check_keyword();		
 	}
 }
-
 
 
 
