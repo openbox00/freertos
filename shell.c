@@ -69,16 +69,28 @@ const hcmd_entry cmd_data[CMD_COUNT] = {
 	
 };
 
+/* for mmtest */
+int atoi(const char *str){
+	int result = 0;
+	while (*str != '\0'){
+		result = result * 10;
+		result = result + *str - '0';
+		str++;
+	}
+	return result;
+}
+
 /* mmtest */
 void show_mmtest_info(int argc, char* argv[])
 {
-    int i;
-    char *p;
+	int i;
+	char *x;
+	
+	i = atoi(argv[1]);	
 
-    print("try to allocate %d bytes\n\r", argv[1]);
-//    p = (char *) pvPortMalloc(argv[1]);
-//    print("malloc returned %p\n\r", p);
-
+   	print("try to allocate %d bytes\n\r", i);
+	x = (char *) pvPortMalloc(i);
+	print("malloc returned %x\n\r", x);
 }
 /* mmtest */
 
