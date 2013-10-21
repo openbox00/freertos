@@ -41,7 +41,8 @@ void show_cmd_info(int argc, char *argv[]);
 void show_echo(int argc, char* argv[]);
 void show_history(int argc, char *argv[]);
 void show_task_info(int argc, char* argv[]);
-void show_mmtest_info(int argc, char* argv[]);
+void show_mmtest(int argc, char* argv[]);
+void show_mem_info(int argc, char* argv[]);
 
 /* Enumeration for command types. */
 enum {
@@ -50,6 +51,7 @@ enum {
 	CMD_ECHO,
 	CMD_MMTEST,
 	CMD_PS,
+	CMD_MEMINFO,
 	CMD_COUNT
 } CMD_TYPE;
 
@@ -64,10 +66,17 @@ const hcmd_entry cmd_data[CMD_COUNT] = {
 	[CMD_HELP] = {.cmd = "help", .func = show_cmd_info, .description = "List all commands you can use."},	
 	[CMD_HISTORY] = {.cmd = "history", .func = show_history, .description = "Show latest commands entered."}, 
 	[CMD_ECHO] = {.cmd = "echo", .func = show_echo, .description = "Show words you input."},
-	[CMD_MMTEST] = {.cmd = "mmtest", .func = show_mmtest_info, .description = "test memory allocate and free."},
-	[CMD_PS] = {.cmd = "ps", .func = show_task_info, .description = "List all the processes."}
-	
+	[CMD_MMTEST] = {.cmd = "mmtest", .func = show_mmtest, .description = "Test memory allocate and free."},
+	[CMD_PS] = {.cmd = "ps", .func = show_task_info, .description = "List all the processes."},
+	[CMD_MEMINFO] = {.cmd = "meminfo", .func = show_mem_info, .description = "Show memory info."}	
 };
+
+
+/* meminfo  Ref PJayChen*/
+void show_mem_info(int argc, char* argv[]){
+	print("Maximun size  : %d (0x%x) byte\n\r", configTOTAL_HEAP_SIZE, configTOTAL_HEAP_SIZE);
+	print("Free Heap Size: %d (0x%x) byte\n\r", xPortGetFreeHeapSize(), xPortGetFreeHeapSize());  	
+}
 
 /* for mmtest */
 int atoi(const char *str){
@@ -81,7 +90,7 @@ int atoi(const char *str){
 }
 
 /* mmtest */
-void show_mmtest_info(int argc, char* argv[])
+void show_mmtest(int argc, char* argv[])
 {
 	int i;
 	char *x;
