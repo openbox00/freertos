@@ -24,7 +24,7 @@ void xtoa(int n, char *buffer)
 	int i = 0;
 	int j = 0;
 
-	s = print_buf + 9;
+	s = print_buf + 8;
 	*s = '\0';	
 	
 	while (n) {
@@ -35,12 +35,6 @@ void xtoa(int n, char *buffer)
 		n /= 16;
 		i++;
 	}
-
-	/* 32 bit to hex need 8 digits, so no digits bit should fill 0 */
-	for(j=0;j<(8-i);j++){
-	*buffer = '0';
-	buffer++;
-	}	
 
 	while(*s!='\0'){
 	*buffer = *s;
@@ -91,12 +85,12 @@ void print(const char *format, ...)
                 if(format[curr_ch + 1] == 's'){
                     str = va_arg(ap, char *);
 					send_str(str);
-					//parameter(...,The address of a pointer that point to the string which been put in queue,...)
+				//parameter(...,The address of a pointer that point to the string which been put in queue,...)
 				}else if(format[curr_ch + 1] == 'd'){
-                    itoa(va_arg(ap, int), str_num);
+		                    	itoa(va_arg(ap, int), str_num);
 					send_str(str_num);
 				}else if(format[curr_ch + 1] == 'x'){
-                    xtoa(va_arg(ap, int), str_num);
+                  			xtoa(va_arg(ap, int), str_num);
 					send_str(str_num);
 				}else if(format[curr_ch + 1] == 'c'){
 					/* char are converted to int then pushed on the stack */
