@@ -13,8 +13,10 @@
 #include "fio.h"
 
 /* Shell */
-
 #include "shell.h"
+
+/* mmtest */
+#include "mmtest.h"
 
 extern const char _sromfs;
 
@@ -112,6 +114,11 @@ int main()
 	vSemaphoreCreateBinary(serial_tx_wait_sem);
 	serial_rx_queue = xQueueCreate(1, sizeof(serial_ch_msg));
 
+	/* malloc task. run in background  */
+	xTaskCreate(mmtest,
+	            (signed portCHAR *) "mmtest",
+	            512 /* stack size */, NULL,
+	            tskIDLE_PRIORITY + 2, NULL);
 
 	/* Shell task. */
 	xTaskCreate(shell,

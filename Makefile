@@ -56,10 +56,12 @@ main.bin: test-romfs.o main.c shell.c print.c
 		\
 		main.c \
 		print.c \
+		mmtest.c \
 		shell.c
 	$(CROSS_COMPILE)ld -Tmain.ld -nostartfiles -o main.elf \
 		shell.o	\
 		print.o \
+		mmtest.o \
 		core_cm3.o \
 		system_stm32f10x.o \
 		startup_stm32f10x_md.o \
