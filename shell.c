@@ -89,10 +89,11 @@ int atoi(const char *str){
 /*ref ref zzz0072, PJayChen*/
 void show_task_info(int argc, char* argv[])
 {
-	portCHAR buf[100];
+	/*use hardcoded array*/
+	portCHAR buf[MAX_CMDHELP];
 	vTaskList(buf);
 	print("Name\t\tState Priority Stack\tNum");
-    print("%s", buf); 
+	print("%s", buf); 
 }
 
 //echo but can't solve '' "" situation 
@@ -173,7 +174,8 @@ int cmdtok(char *argv[], char *cmd)
 
 void check_keyword()
 {
-	char tok[MAX_ARGC + 1][100];
+	/*use hardcoded array*/	
+	char tok[MAX_ARGC + 1][MAX_CMDHELP];
 	char *argv[MAX_ARGC + 1];
 	int k = 0;
 	
