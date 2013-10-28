@@ -68,32 +68,52 @@ const hcmd_entry cmd_data[CMD_COUNT] = {
 	[CMD_MEMINFO] = {.cmd = "meminfo", .func = show_mem_info, .description = "Show memory info."}	
 };
 
-
 /* meminfo  Ref PJayChen*/
-void show_mem_info(int argc, char* argv[]){
-	print("Maximun size  : %d (0x%x) byte\n\r", configTOTAL_HEAP_SIZE, configTOTAL_HEAP_SIZE);
-	print("Free Heap Size: %d (0x%x) byte\n\r", xPortGetFreeHeapSize(), xPortGetFreeHeapSize());
-}
-
-/* char to integar */
-int atoi(const char *str){
-	int result = 0;
-	while (*str != '\0'){
-		result = result * 10;
-		result = result + *str - '0';
-		str++;
+void show_mem_info(int argc, char* argv[])
+{
+	char ch;
+	/* 38 = & */
+	if (argv[1][0] == '&'){
+		printf("Maximun size  : %d (0x%x) byte\n\r", configTOTAL_HEAP_SIZE, configTOTAL_HEAP_SIZE);
+		printf("Free Heap Size: %d (0x%x) byte\n\r", xPortGetFreeHeapSize(), xPortGetFreeHeapSize());
+		while (1){
+			if (receive_byte_noblock(&ch) == 1){ 
+				printf("DONE\n\r"); 
+	       		break;        
+			}
+		}		
 	}
-	return result;
+	else {
+		printf("Maximun size  : %d (0x%x) byte\n\r", configTOTAL_HEAP_SIZE, configTOTAL_HEAP_SIZE);
+		printf("Free Heap Size: %d (0x%x) byte\n\r", xPortGetFreeHeapSize(), xPortGetFreeHeapSize());
+	}
 }
 
 /*ref ref zzz0072, PJayChen*/
 void show_task_info(int argc, char* argv[])
 {
-	/*use hardcoded array*/
-	portCHAR buf[MAX_CMDHELP];
-	vTaskList(buf);
-	print("Name\t\tState Priority Stack\tNum");
-	print("%s", buf); 
+	char ch;
+	/* 38 = & */
+	if (argv[1][0] == '&'){
+		/*use hardcoded array*/
+		portCHAR buf[MAX_CMDHELP];
+		vTaskList(buf);
+		printf("Name\t\tState Priority Stack\tNum");
+		printf("%s", buf); 
+		while (1){
+			if (receive_byte_noblock(&ch) == 1){ 
+				printf("DONE\n\r"); 
+        		break;
+			}        
+		}		
+	}
+	else {	
+		/*use hardcoded array*/
+		portCHAR buf[MAX_CMDHELP];
+		vTaskList(buf);
+		printf("Name\t\tState Priority Stack\tNum");
+		printf("%s", buf); 
+	}
 }
 
 //echo but can't solve '' "" situation 
@@ -102,19 +122,37 @@ void show_echo(int argc, char* argv[])
 	int i = 1;
 	int j = 0;
 	for(;i<argc;i++){
-		print("%s ",argv[i]);	
+		printf("%s ",argv[i]);	
 	}
-	print("\n");
+	printf("\n");
 }
 
 //history
 void show_history(int argc, char *argv[])
 {
 	int i;
-	for (i = cur_his+1; i <= cur_his + HISTORY_COUNT; i++) {
-		if (cmd[i % HISTORY_COUNT][0]) {
-			print("%s", cmd[i % HISTORY_COUNT]);
-			print("%s",next_line);
+	char ch;
+	/* 38 = & */
+	if (argv[1][0] == '&'){
+		for (i = cur_his+1; i <= cur_his + HISTORY_COUNT; i++) {
+			if (cmd[i % HISTORY_COUNT][0]) {
+				printf("%s", cmd[i % HISTORY_COUNT]);
+				printf("%s",next_line);
+			}
+		}
+		while (1){
+			if (receive_byte_noblock(&ch) == 1){
+				printf("DONE\n\r"); 
+        		break;       
+			} 
+		}		
+	}
+	else {
+		for (i = cur_his+1; i <= cur_his + HISTORY_COUNT; i++) {
+			if (cmd[i % HISTORY_COUNT][0]) {
+				printf("%s", cmd[i % HISTORY_COUNT]);
+				printf("%s",next_line);
+			}
 		}
 	}
 }
@@ -124,13 +162,31 @@ void show_cmd_info(int argc, char* argv[])
 {
 	char *help_desp = "This system has commands as follow\n\r\0";
 	int i;
-
-	print("%s",help_desp);
-	for (i = 0; i < CMD_COUNT; i++) {
-		print("%s",cmd_data[i].cmd);
-		print("\t: ");
-		print("%s",cmd_data[i].description);
-		print("%s",next_line);
+	char ch;
+	/* 38 = & */
+	if (argv[1][0] == '&'){
+		printf("%s",help_desp);
+		for (i = 0; i < CMD_COUNT; i++) {
+			printf("%s",cmd_data[i].cmd);
+			printf("\t: ");
+			printf("%s",cmd_data[i].description);
+			printf("%s",next_line);
+		}
+		while (1){
+			if (receive_byte_noblock(&ch) == 1){
+				printf("DONE\n\r");  
+        		break;        
+			}
+		}		
+	}
+	else {
+		printf("%s",help_desp);
+		for (i = 0; i < CMD_COUNT; i++) {
+			printf("%s",cmd_data[i].cmd);
+			printf("\t: ");
+			printf("%s",cmd_data[i].description);
+			printf("%s",next_line);
+		}
 	}
 }
 
@@ -198,9 +254,9 @@ void check_keyword()
 	}
 
 	if (i == CMD_COUNT) {
-		print("%s",argv[0]);
-		print(": command not found");
-		print("%s",next_line);
+		printf("%s",argv[0]);
+		printf(": command not found");
+		printf("%s",next_line);
 	}
 }
 
@@ -214,25 +270,25 @@ void shell(void *pvParameters)
 		/* need use & that p can work correct, idk why p = cmd[cur_his] can't work */
 		p = &cmd[cur_his][0];
 
-		print("%s",str);
+		printf("%s",str);
 		
 		while (1) {
 			put_ch = receive_byte();			
 
 			if (put_ch == '\r' || put_ch == '\n') {
 				*p = '\0';
-				print("%s",next_line);
+				printf("%s",next_line);
 				break;
 			}
 			else if (put_ch== 127 || put_ch == '\b') {
 				if (p > &cmd[cur_his][0]) {
 					p--;
-					print("\b \b");
+					printf("\b \b");
 				}
 			}
 			else if (p - &cmd[cur_his][0] < CMDBUF_SIZE - 1) {
 				*(p++) = put_ch;
-				print("%c",put_ch);
+				printf("%c",put_ch);
 			}	
 		}
 		check_keyword();		
